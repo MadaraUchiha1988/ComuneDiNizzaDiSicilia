@@ -1,0 +1,69 @@
+// app.js - Funzioni dinamiche della web app turistica
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Lista eventi
+  const eventi = [
+    {
+      titolo: "Festa del Mare",
+      data: "21 Giugno 2025",
+      descrizione: "Musica, street food e spettacolo pirotecnico sul lungomare."
+    },
+    {
+      titolo: "Pulizia della Spiaggia",
+      data: "5 Luglio 2025",
+      descrizione: "Giornata ecologica con i volontari per la tutela dell'ambiente."
+    }
+  ];
+
+  const listaEventi = document.getElementById("lista-eventi");
+  eventi.forEach(evento => {
+    const div = document.createElement("div");
+    div.className = "evento";
+    div.innerHTML = `<h3>${evento.titolo}</h3><p><strong>${evento.data}</strong><br>${evento.descrizione}</p>`;
+    listaEventi.appendChild(div);
+  });
+
+  // Lista servizi
+  const servizi = [
+    {
+      nome: "Noleggio Bici",
+      descrizione: "Disponibile tutti i giorni dalle 9 alle 19 in Piazza Municipio."
+    },
+    {
+      nome: "Escursioni in Barca",
+      descrizione: "Tour della costa e visita alle grotte marine. Prenotazioni presso info point."
+    }
+  ];
+
+  const listaServizi = document.getElementById("lista-servizi");
+  servizi.forEach(servizio => {
+    const div = document.createElement("div");
+    div.className = "servizio";
+    div.innerHTML = `<h3>${servizio.nome}</h3><p>${servizio.descrizione}</p>`;
+    listaServizi.appendChild(div);
+  });
+
+  // Mappa (Leaflet.js - OpenStreetMap)
+  const mapContainer = document.getElementById("map-container");
+  if (mapContainer) {
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/leaflet@1.9.3/dist/leaflet.js";
+    script.onload = () => {
+      const L = window.L;
+      const map = L.map("map-container").setView([38.0167, 15.4167], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      L.marker([38.0167, 15.4167]).addTo(map)
+        .bindPopup("Nizza di Sicilia - Centro Informazioni Turistiche")
+        .openPopup();
+    };
+    document.head.appendChild(script);
+
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://unpkg.com/leaflet@1.9.3/dist/leaflet.css";
+    document.head.appendChild(link);
+  }
+});
