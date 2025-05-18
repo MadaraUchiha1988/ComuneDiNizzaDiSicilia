@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- MODIFICA: Cambia il titolo del sito qui -->
+    <title>Comune di Nizza di Sicilia - Turismo e Servizi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            scroll-behavior: smooth;
+        }
+        
+        /* MODIFICA: Puoi cambiare l'immagine di sfondo della hero section qui.
+           Sostituisci l'URL con il link alla tua immagine o usa un'immagine SVG personalizzata */
+        .hero-bg {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='400' viewBox='0 0 800 400'%3E%3Crect width='800' height='400' fill='%230ea5e9'/%3E%3Cpath d='M0 300 Q 200 200 400 300 T 800 300 L 800 400 L 0 400 Z' fill='%23f0f9ff'/%3E%3Cpath d='M0 350 Q 200 250 400 350 T 800 350 L 800 400 L 0 400 Z' fill='%23e0f2fe'/%3E%3C/svg%3E");
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .section-transition {
+            height: 50px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 100'%3E%3Cpath fill='%23ffffff' fill-opacity='1' d='M0,32L60,37.3C120,43,240,53,360,58.7C480,64,600,64,720,58.7C840,53,960,43,1080,42.7C1200,43,1320,53,1380,58.7L1440,64L1440,100L1380,100C1320,100,1200,100,1080,100C960,100,840,100,720,100C600,100,480,100,360,100C240,100,120,100,60,100L0,100Z'%3E%3C/path%3E%3C/svg%3E");
+            background-size: cover;
+        }
+        
+        .beach-card:hover .beach-overlay {
+            opacity: 1;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid #0ea5e9;
+            color: #0ea5e9;
+            font-weight: 600;
+        }
+        
+        /* Stili per il pannello di amministrazione */
+        .admin-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .edit-mode .editable {
+            border: 2px dashed #0ea5e9;
+            padding: 5px;
+            position: relative;
+        }
+        
+        .edit-mode .editable:hover {
+            background-color: rgba(14, 165, 233, 0.1);
+            cursor: pointer;
+        }
+        
+        .edit-mode .editable::after {
+            content: "✏️";
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: #0ea5e9;
+            color: white;
+            padding: 2px 5px;
+            font-size: 10px;
+            border-radius: 0 0 0 5px;
+        }
+        
+        .edit-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .edit-form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-md fixed w-full z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center">
+                <!-- MODIFICA: Puoi cambiare il logo qui sostituendo l'SVG -->
+                <svg class="h-10 w-10 text-sky-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+                <div class="ml-3">
+                    <!-- MODIFICA: Cambia il nome del comune qui -->
+                    <h1 class="text-xl font-bold text-gray-800 editable" data-edit-type="text" data-edit-id="comune-nome">Comune di Nizza di Sicilia</h1>
+                    <p class="text-xs text-gray-600 editable" data-edit-type="text" data-edit-id="comune-descrizione">Portale Turistico</p>
+                </div>
+            </div>
+            
+            <nav class="hidden md:flex space-x-6">
+                <a href="#home" class="text-gray-700 hover:text-sky-500 transition">Home</a>
+                <a href="#spiagge" class="text-gray-700 hover:text-sky-500 transition">Spiagge</a>
+                <a href="#eventi" class="text-gray-700 hover:text-sky-500 transition">Eventi</a>
+                <a href="#attivita" class="text-gray-700 hover:text-sky-500 transition">Attività</a>
+                <a href="#servizi" class="text-gray-700 hover:text-sky-500 transition">Servizi</a>
+            </nav>
+            
+            <button id="mobile-menu-button" class="md:hidden text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200">
+            <div class="container mx-auto px-4 py-2 space-y-3">
+                <a href="#home" class="block text-gray-700 hover:text-sky-500 transition">Home</a>
+                <a href="#spiagge" class="block text-gray-700 hover:text-sky-500 transition">Spiagge</a>
+                <a href="#eventi" class="block text-gray-700 hover:text-sky-500 transition">Eventi</a>
+                <a href="#attivita" class="block text-gray-700 hover:text-sky-500 transition">Attività</a>
+                <a href="#servizi" class="block text-gray-700 hover:text-sky-500 transition">Servizi</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-bg h-screen flex items-center justify-center text-white pt-16">
+        <div class="container mx-auto px-4 text-center">
+            <!-- MODIFICA: Cambia il titolo principale qui -->
+            <h1 class="text-4xl md:text-6xl font-bold mb-4 editable" data-edit-type="text" data-edit-id="hero-titolo">Benvenuti a Nizza di Sicilia</h1>
+            <!-- MODIFICA: Cambia il sottotitolo qui -->
+            <p class="text-xl md:text-2xl mb-8 editable" data-edit-type="text" data-edit-id="hero-sottotitolo">Scopri le bellezze del nostro territorio</p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="#spiagge" class="bg-sky-500 hover:bg-sky-600 text-white font-medium py-3 px-6 rounded-lg transition shadow-lg">
+                    Esplora le Spiagge
+                </a>
+                <a href="#eventi" class="bg-white hover:bg-gray-100 text-sky-500 font-medium py-3 px-6 rounded-lg transition shadow-lg">
+                    Eventi e Attività
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Beaches Section -->
+    <section id="spiagge" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <!-- MODIFICA: Cambia il titolo della sezione qui -->
+            <h2 class="text-3xl font-bold text-center mb-2 editable" data-edit-type="text" data-edit-id="spiagge-titolo">Le Nostre Spiagge</h2>
+            <!-- MODIFICA: Cambia la descrizione della sezione qui -->
+            <p class="text-gray-600 text-center mb-12 editable" data-edit-type="text" data-edit-id="spiagge-descrizione">Scopri i lidi e gli accessi al mare di Nizza di Sicilia</p>
+            
+            <div class="flex mb-8 border-b overflow-x-auto">
+                <button class="tab active px-4 py-2 focus:outline-none" data-tab="lidi">Lidi</button>
+                <button class="tab px-4 py-2 focus:outline-none" data-tab="accessi">Accessi alla Spiaggia</button>
+            </div>
+            
+            <!-- Lidi Tab Content -->
+            <div id="lidi-content" class="tab-content active">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="lidi-container">
+                    <!-- Lido 1 -->
+                    <div class="beach-card rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="lido-1">
+                        <div class="relative h-48 bg-sky-100">
+                            <!-- MODIFICA: Sostituisci questo SVG con un'immagine reale del lido -->
+                            <svg class="w-full h-full text-sky-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                                <path fill="currentColor" fill-opacity="1" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,202.7C672,203,768,181,864,181.3C960,181,1056,203,1152,208C1248,213,1344,203,1392,197.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <i class="fas fa-umbrella-beach text-5xl text-sky-500"></i>
+                            </div>
+                            <div class="beach-overlay absolute inset-0 bg-black bg-opacity-20 opacity-0 transition flex items-center justify-center">
+                                <button class="bg-white text-sky-500 px-4 py-2 rounded-lg shadow hover:bg-sky-50 transition view-details" data-item-id="lido-1">
+                                    Visualizza Dettagli
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <!-- MODIFICA: Cambia il nome del lido qui -->
+                            <h3 class="text-xl font-bold mb-2 editable" data-edit-type="text" data-edit-id="lido-1-nome">Lido Azzurro</h3>
+                            <!-- MODIFICA: Cambia la descrizione del lido qui -->
+                            <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="lido-1-descrizione">Spiaggia attrezzata con servizi completi e ristorante</p>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                                <!-- MODIFICA: Cambia l'indirizzo del lido qui -->
+                                <span class="editable" data-edit-type="text" data-edit-id="lido-1-indirizzo">Via Lungomare, Nizza di Sicilia</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Lido 2 -->
+                    <div class="beach-card rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="lido-2">
+                        <div class="relative h-48 bg-sky-100">
+                            <!-- MODIFICA: Sostituisci questo SVG con un'immagine reale del lido -->
+                            <svg class="w-full h-full text-sky-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                                <path fill="currentColor" fill-opacity="1" d="M0,160L48,176C96,192,192,224,288,224C384,224,480,192,576,176C672,160,768,160,864,176C960,192,1056,224,1152,213.3C1248,203,1344,149,1392,122.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <i class="fas fa-umbrella-beach text-5xl text-sky-500"></i>
+                            </div>
+                            <div class="beach-overlay absolute inset-0 bg-black bg-opacity-20 opacity-0 transition flex items-center justify-center">
+                                <button class="bg-white text-sky-500 px-4 py-2 rounded-lg shadow hover:bg-sky-50 transition view-details" data-item-id="lido-2">
+                                    Visualizza Dettagli
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <!-- MODIFICA: Cambia il nome del lido qui -->
+                            <h3 class="text-xl font-bold mb-2 editable" data-edit-type="text" data-edit-id="lido-2-nome">Lido Mediterraneo</h3>
+                            <!-- MODIFICA: Cambia la descrizione del lido qui -->
+                            <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="lido-2-descrizione">Spiaggia con ombrelloni, lettini e bar</p>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                                <!-- MODIFICA: Cambia l'indirizzo del lido qui -->
+                                <span class="editable" data-edit-type="text" data-edit-id="lido-2-indirizzo">Via del Mare 23, Nizza di Sicilia</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Lido 3 -->
+                    <div class="beach-card rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="lido-3">
+                        <div class="relative h-48 bg-sky-100">
+                            <!-- MODIFICA: Sostituisci questo SVG con un'immagine reale del lido -->
+                            <svg class="w-full h-full text-sky-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                                <path fill="currentColor" fill-opacity="1" d="M0,128L48,144C96,160,192,192,288,186.7C384,181,480,139,576,138.7C672,139,768,181,864,197.3C960,213,1056,203,1152,181.3C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <i class="fas fa-umbrella-beach text-5xl text-sky-500"></i>
+                            </div>
+                            <div class="beach-overlay absolute inset-0 bg-black bg-opacity-20 opacity-0 transition flex items-center justify-center">
+                                <button class="bg-white text-sky-500 px-4 py-2 rounded-lg shadow hover:bg-sky-50 transition view-details" data-item-id="lido-3">
+                                    Visualizza Dettagli
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <!-- MODIFICA: Cambia il nome del lido qui -->
+                            <h3 class="text-xl font-bold mb-2 editable" data-edit-type="text" data-edit-id="lido-3-nome">Lido Paradiso</h3>
+                            <!-- MODIFICA: Cambia la descrizione del lido qui -->
+                            <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="lido-3-descrizione">Spiaggia attrezzata con area giochi per bambini</p>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                                <!-- MODIFICA: Cambia l'indirizzo del lido qui -->
+                                <span class="editable" data-edit-type="text" data-edit-id="lido-3-indirizzo">Lungomare Nord, Nizza di Sicilia</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-10">
+                    <button id="add-lido-btn" class="bg-sky-500 hover:bg-sky-600 text-white font-medium py-2 px-6 rounded-lg transition shadow">
+                        <i class="fas fa-plus mr-2"></i> Aggiungi Nuovo Lido
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Accessi Tab Content -->
+            <div id="accessi-content" class="tab-content">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="accessi-container">
+                    <!-- Accesso 1 -->
+                    <div class="rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="accesso-1">
+                        <div class="relative h-48 bg-sky-50">
+                            <!-- MODIFICA: Sostituisci questo SVG con un'immagine reale dell'accesso -->
+                            <svg class="w-full h-full text-sky-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                                <path fill="currentColor" fill-opacity="1" d="M0,224L40,229.3C80,235,160,245,240,229.3C320,213,400,171,480,165.3C560,160,640,192,720,197.3C800,203,880,181,960,181.3C1040,181,1120,203,1200,208C1280,213,1360,203,1400,197.3L1440,192L1440,320L1400,320C1360,320,1280,320,1200,320C1120,320,1040,320,960,320C880,320,800,320,720,320C640,320,560,320,480,320C400,320,320,320,240,320C160,320,80,320,40,320L0,320Z"></path>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <i class="fas fa-walking text-5xl text-sky-500"></i>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <!-- MODIFICA: Cambia il nome dell'accesso qui -->
+                            <h3 class="text-xl font-bold mb-2 editable" data-edit-type="text" data-edit-id="accesso-1-nome">Accesso Spiaggia Centrale</h3>
+                            <!-- MODIFICA: Cambia la descrizione dell'accesso qui -->
+                            <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="accesso-1-descrizione">Accesso pubblico con parcheggio e docce</p>
+                            <div class="flex items-center text-sm text-gray-500 mb-4">
+                                <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                                <!-- MODIFICA: Cambia l'indirizzo dell'accesso qui -->
+                                <span class="editable" data-edit-type="text" data-edit-id="accesso-1-indirizzo">Piazza del Mare, Nizza di Sicilia</span>
+                            </div>
+                            <!-- MODIFICA: Cambia il link di Google Maps qui -->
+                            <a href="https://maps.google.com/?q=Nizza+di+Sicilia+spiaggia+centrale" target="_blank" class="inline-flex items-center text-sky-500 hover:text-sky-600 transition editable" data-edit-type="link" data-edit-id="accesso-1-maps">
+                                <i class="fas fa-map-marked-alt mr-2"></i>
+                                Apri in Google Maps
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Accesso 2 -->
+                    <div class="rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="accesso-2">
+                        <div class="relative h-48 bg-sky-50">
+                            <!-- MODIFICA: Sostituisci questo SVG con un'immagine reale dell'accesso -->
+                            <svg class="w-full h-full text-sky-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                                <path fill="currentColor" fill-opacity="1" d="M0,160L40,165.3C80,171,160,181,240,176C320,171,400,149,480,149.3C560,149,640,171,720,176C800,181,880,171,960,149.3C1040,128,1120,96,1200,90.7C1280,85,1360,107,1400,117.3L1440,128L1440,320L1400,320C1360,320,1280,320,1200,320C1120,320,1040,320,960,320C880,320,800,320,720,320C640,320,560,320,480,320C400,320,320,320,240,320C160,320,80,320,40,320L0,320Z"></path>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <i class="fas fa-walking text-5xl text-sky-500"></i>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <!-- MODIFICA: Cambia il nome dell'accesso qui -->
+                            <h3 class="text-xl font-bold mb-2 editable" data-edit-type="text" data-edit-id="accesso-2-nome">Accesso Spiaggia Nord</h3>
+                            <!-- MODIFICA: Cambia la descrizione dell'accesso qui -->
+                            <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="accesso-2-descrizione">Accesso con scalinata e area pic-nic</p>
+                            <div class="flex items-center text-sm text-gray-500 mb-4">
+                                <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                                <!-- MODIFICA: Cambia l'indirizzo dell'accesso qui -->
+                                <span class="editable" data-edit-type="text" data-edit-id="accesso-2-indirizzo">Via Lungomare Nord, Nizza di Sicilia</span>
+                            </div>
+                            <!-- MODIFICA: Cambia il link di Google Maps qui -->
+                            <a href="https://maps.google.com/?q=Nizza+di+Sicilia+spiaggia+nord" target="_blank" class="inline-flex items-center text-sky-500 hover:text-sky-600 transition editable" data-edit-type="link" data-edit-id="accesso-2-maps">
+                                <i class="fas fa-map-marked-alt mr-2"></i>
+                                Apri in Google Maps
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Accesso 3 -->
+                    <div class="rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="accesso-3">
+                        <div class="relative h-48 bg-sky-50">
+                            <!-- MODIFICA: Sostituisci questo SVG con un'immagine reale dell'accesso -->
+                            <svg class="w-full h-full text-sky-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                                <path fill="currentColor" fill-opacity="1" d="M0,192L40,181.3C80,171,160,149,240,149.3C320,149,400,171,480,186.7C560,203,640,213,720,208C800,203,880,181,960,176C1040,171,1120,181,1200,186.7C1280,192,1360,192,1400,192L1440,192L1440,320L1400,320C1360,320,1280,320,1200,320C1120,320,1040,320,960,320C880,320,800,320,720,320C640,320,560,320,480,320C400,320,320,320,240,320C160,320,80,320,40,320L0,320Z"></path>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <i class="fas fa-walking text-5xl text-sky-500"></i>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <!-- MODIFICA: Cambia il nome dell'accesso qui -->
+                            <h3 class="text-xl font-bold mb-2 editable" data-edit-type="text" data-edit-id="accesso-3-nome">Accesso Spiaggia Sud</h3>
+                            <!-- MODIFICA: Cambia la descrizione dell'accesso qui -->
+                            <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="accesso-3-descrizione">Accesso con rampa per disabili e fontanella</p>
+                            <div class="flex items-center text-sm text-gray-500 mb-4">
+                                <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                                <!-- MODIFICA: Cambia l'indirizzo dell'accesso qui -->
+                                <span class="editable" data-edit-type="text" data-edit-id="accesso-3-indirizzo">Via del Faro, Nizza di Sicilia</span>
+                            </div>
+                            <!-- MODIFICA: Cambia il link di Google Maps qui -->
+                            <a href="https://maps.google.com/?q=Nizza+di+Sicilia+spiaggia+sud" target="_blank" class="inline-flex items-center text-sky-500 hover:text-sky-600 transition editable" data-edit-type="link" data-edit-id="accesso-3-maps">
+                                <i class="fas fa-map-marked-alt mr-2"></i>
+                                Apri in Google Maps
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-10">
+                    <button id="add-accesso-btn" class="bg-sky-500 hover:bg-sky-600 text-white font-medium py-2 px-6 rounded-lg transition shadow">
+                        <i class="fas fa-plus mr-2"></i> Aggiungi Nuovo Accesso
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <div class="section-transition"></div>
+
+    <!-- Events Section -->
+    <section id="eventi" class="py-16 bg-sky-50">
+        <div class="container mx-auto px-4">
+            <!-- MODIFICA: Cambia il titolo della sezione qui -->
+            <h2 class="text-3xl font-bold text-center mb-2 editable" data-edit-type="text" data-edit-id="eventi-titolo">Eventi</h2>
+            <!-- MODIFICA: Cambia la descrizione della sezione qui -->
+            <p class="text-gray-600 text-center mb-12 editable" data-edit-type="text" data-edit-id="eventi-descrizione">Scopri gli eventi in programma a Nizza di Sicilia</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="eventi-container">
+                <!-- Event 1 -->
+                <div class="rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="evento-1">
+                    <div class="relative h-48 bg-yellow-50">
+                        <!-- MODIFICA: Sostituisci questa icona con un'immagine reale dell'evento -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-music text-5xl text-yellow-500"></i>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <!-- MODIFICA: Cambia il nome dell'evento qui -->
+                            <h3 class="text-xl font-bold editable" data-edit-type="text" data-edit-id="evento-1-nome">Festival del Mare</h3>
+                            <!-- MODIFICA: Cambia la categoria dell'evento qui -->
+                            <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded editable" data-edit-type="text" data-edit-id="evento-1-categoria">Musica</span>
+                        </div>
+                        <!-- MODIFICA: Cambia la descrizione dell'evento qui -->
+                        <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="evento-1-descrizione">Concerti e spettacoli sul lungomare con artisti locali e nazionali</p>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="far fa-calendar-alt mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia la data dell'evento qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="evento-1-data">15-17 Agosto 2023</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia il luogo dell'evento qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="evento-1-luogo">Lungomare di Nizza di Sicilia</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Event 2 -->
+                <div class="rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="evento-2">
+                    <div class="relative h-48 bg-green-50">
+                        <!-- MODIFICA: Sostituisci questa icona con un'immagine reale dell'evento -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-utensils text-5xl text-green-500"></i>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <!-- MODIFICA: Cambia il nome dell'evento qui -->
+                            <h3 class="text-xl font-bold editable" data-edit-type="text" data-edit-id="evento-2-nome">Sagra del Pesce</h3>
+                            <!-- MODIFICA: Cambia la categoria dell'evento qui -->
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded editable" data-edit-type="text" data-edit-id="evento-2-categoria">Gastronomia</span>
+                        </div>
+                        <!-- MODIFICA: Cambia la descrizione dell'evento qui -->
+                        <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="evento-2-descrizione">Degustazione di piatti tipici a base di pesce fresco locale</p>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="far fa-calendar-alt mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia la data dell'evento qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="evento-2-data">10 Luglio 2023</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia il luogo dell'evento qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="evento-2-luogo">Piazza Municipio</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Event 3 -->
+                <div class="rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="evento-3">
+                    <div class="relative h-48 bg-purple-50">
+                        <!-- MODIFICA: Sostituisci questa icona con un'immagine reale dell'evento -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-theater-masks text-5xl text-purple-500"></i>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <!-- MODIFICA: Cambia il nome dell'evento qui -->
+                            <h3 class="text-xl font-bold editable" data-edit-type="text" data-edit-id="evento-3-nome">Teatro in Piazza</h3>
+                            <!-- MODIFICA: Cambia la categoria dell'evento qui -->
+                            <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded editable" data-edit-type="text" data-edit-id="evento-3-categoria">Cultura</span>
+                        </div>
+                        <!-- MODIFICA: Cambia la descrizione dell'evento qui -->
+                        <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="evento-3-descrizione">Rassegna teatrale con compagnie locali e nazionali</p>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="far fa-calendar-alt mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia la data dell'evento qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="evento-3-data">Ogni venerdì di Luglio</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia il luogo dell'evento qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="evento-3-luogo">Piazza San Giuseppe</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-10">
+                <button id="add-event-btn" class="bg-sky-500 hover:bg-sky-600 text-white font-medium py-2 px-6 rounded-lg transition shadow">
+                    <i class="fas fa-plus mr-2"></i> Aggiungi Nuovo Evento
+                </button>
+            </div>
+        </div>
+    </section>
+    
+    <div class="section-transition"></div>
+
+    <!-- Activities Section -->
+    <section id="attivita" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <!-- MODIFICA: Cambia il titolo della sezione qui -->
+            <h2 class="text-3xl font-bold text-center mb-2 editable" data-edit-type="text" data-edit-id="attivita-titolo">Attività</h2>
+            <!-- MODIFICA: Cambia la descrizione della sezione qui -->
+            <p class="text-gray-600 text-center mb-12 editable" data-edit-type="text" data-edit-id="attivita-descrizione">Scopri le attività disponibili a Nizza di Sicilia</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="attivita-container">
+                <!-- Activity 1 -->
+                <div class="rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="attivita-1">
+                    <div class="relative h-48 bg-blue-50">
+                        <!-- MODIFICA: Sostituisci questa icona con un'immagine reale dell'attività -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-water text-5xl text-blue-500"></i>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <!-- MODIFICA: Cambia il nome dell'attività qui -->
+                            <h3 class="text-xl font-bold editable" data-edit-type="text" data-edit-id="attivita-1-nome">Scuola di Surf</h3>
+                            <!-- MODIFICA: Cambia la categoria dell'attività qui -->
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded editable" data-edit-type="text" data-edit-id="attivita-1-categoria">Sport</span>
+                        </div>
+                        <!-- MODIFICA: Cambia la descrizione dell'attività qui -->
+                        <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="attivita-1-descrizione">Lezioni di surf per principianti ed esperti</p>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="far fa-clock mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia gli orari dell'attività qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="attivita-1-orari">Tutti i giorni, 9:00 - 18:00</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia il luogo dell'attività qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="attivita-1-luogo">Spiaggia Nord</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Activity 2 -->
+                <div class="rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="attivita-2">
+                    <div class="relative h-48 bg-red-50">
+                        <!-- MODIFICA: Sostituisci questa icona con un'immagine reale dell'attività -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-hiking text-5xl text-red-500"></i>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <!-- MODIFICA: Cambia il nome dell'attività qui -->
+                            <h3 class="text-xl font-bold editable" data-edit-type="text" data-edit-id="attivita-2-nome">Escursioni Guidate</h3>
+                            <!-- MODIFICA: Cambia la categoria dell'attività qui -->
+                            <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded editable" data-edit-type="text" data-edit-id="attivita-2-categoria">Natura</span>
+                        </div>
+                        <!-- MODIFICA: Cambia la descrizione dell'attività qui -->
+                        <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="attivita-2-descrizione">Percorsi naturalistici nell'entroterra con guide esperte</p>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="far fa-clock mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia gli orari dell'attività qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="attivita-2-orari">Martedì e Giovedì, 8:30 - 13:00</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia il luogo dell'attività qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="attivita-2-luogo">Punto di ritrovo: Piazza Municipio</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Activity 3 -->
+                <div class="rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="attivita-3">
+                    <div class="relative h-48 bg-amber-50">
+                        <!-- MODIFICA: Sostituisci questa icona con un'immagine reale dell'attività -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-fish text-5xl text-amber-500"></i>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <!-- MODIFICA: Cambia il nome dell'attività qui -->
+                            <h3 class="text-xl font-bold editable" data-edit-type="text" data-edit-id="attivita-3-nome">Pesca Turistica</h3>
+                            <!-- MODIFICA: Cambia la categoria dell'attività qui -->
+                            <span class="bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded editable" data-edit-type="text" data-edit-id="attivita-3-categoria">Mare</span>
+                        </div>
+                        <!-- MODIFICA: Cambia la descrizione dell'attività qui -->
+                        <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="attivita-3-descrizione">Uscite in barca con pescatori locali per scoprire l'arte della pesca</p>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="far fa-clock mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia gli orari dell'attività qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="attivita-3-orari">Lunedì, Mercoledì e Venerdì, 6:00 - 12:00</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia il luogo dell'attività qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="attivita-3-luogo">Porto di Nizza di Sicilia</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-10">
+                <button id="add-activity-btn" class="bg-sky-500 hover:bg-sky-600 text-white font-medium py-2 px-6 rounded-lg transition shadow">
+                    <i class="fas fa-plus mr-2"></i> Aggiungi Nuova Attività
+                </button>
+            </div>
+        </div>
+    </section>
+    
+    <div class="section-transition"></div>
+
+    <!-- Services Section -->
+    <section id="servizi" class="py-16 bg-sky-50">
+        <div class="container mx-auto px-4">
+            <!-- MODIFICA: Cambia il titolo della sezione qui -->
+            <h2 class="text-3xl font-bold text-center mb-2 editable" data-edit-type="text" data-edit-id="servizi-titolo">Servizi</h2>
+            <!-- MODIFICA: Cambia la descrizione della sezione qui -->
+            <p class="text-gray-600 text-center mb-12 editable" data-edit-type="text" data-edit-id="servizi-descrizione">Servizi disponibili per residenti e turisti</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="servizi-container">
+                <!-- Service 1 -->
+                <div class="rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="servizio-1">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-sky-100 p-3 rounded-full mr-4">
+                                <i class="fas fa-info-circle text-2xl text-sky-500"></i>
+                            </div>
+                            <!-- MODIFICA: Cambia il nome del servizio qui -->
+                            <h3 class="text-xl font-bold editable" data-edit-type="text" data-edit-id="servizio-1-nome">Info Point Turistico</h3>
+                        </div>
+                        <!-- MODIFICA: Cambia la descrizione del servizio qui -->
+                        <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="servizio-1-descrizione">Informazioni turistiche, mappe e assistenza per i visitatori</p>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="far fa-clock mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia gli orari del servizio qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="servizio-1-orari">Tutti i giorni, 9:00 - 19:00</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia l'indirizzo del servizio qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="servizio-1-indirizzo">Piazza Municipio, 1</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-phone mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia il numero di telefono del servizio qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="servizio-1-telefono">+39 0123 456789</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Service 2 -->
+                <div class="rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="servizio-2">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-red-100 p-3 rounded-full mr-4">
+                                <i class="fas fa-first-aid text-2xl text-red-500"></i>
+                            </div>
+                            <!-- MODIFICA: Cambia il nome del servizio qui -->
+                            <h3 class="text-xl font-bold editable" data-edit-type="text" data-edit-id="servizio-2-nome">Primo Soccorso</h3>
+                        </div>
+                        <!-- MODIFICA: Cambia la descrizione del servizio qui -->
+                        <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="servizio-2-descrizione">Punto di primo soccorso per emergenze sanitarie</p>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="far fa-clock mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia gli orari del servizio qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="servizio-2-orari">Tutti i giorni, 24 ore</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia l'indirizzo del servizio qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="servizio-2-indirizzo">Via Roma, 15</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-phone mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia il numero di telefono del servizio qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="servizio-2-telefono">+39 0123 456790</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Service 3 -->
+                <div class="rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition" data-item-id="servizio-3">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-green-100 p-3 rounded-full mr-4">
+                                <i class="fas fa-bus text-2xl text-green-500"></i>
+                            </div>
+                            <!-- MODIFICA: Cambia il nome del servizio qui -->
+                            <h3 class="text-xl font-bold editable" data-edit-type="text" data-edit-id="servizio-3-nome">Trasporto Pubblico</h3>
+                        </div>
+                        <!-- MODIFICA: Cambia la descrizione del servizio qui -->
+                        <p class="text-gray-600 mb-4 editable" data-edit-type="text" data-edit-id="servizio-3-descrizione">Servizio navetta per le spiagge e collegamenti con i paesi limitrofi</p>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="far fa-clock mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia gli orari del servizio qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="servizio-3-orari">Tutti i giorni, 7:00 - 20:00</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="fas fa-map-marker-alt mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia l'indirizzo del servizio qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="servizio-3-indirizzo">Fermate principali: Piazza Municipio, Lungomare, Stazione</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500">
+                            <i class="fas fa-phone mr-2 text-sky-500"></i>
+                            <!-- MODIFICA: Cambia il numero di telefono del servizio qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="servizio-3-telefono">+39 0123 456791</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-10">
+                <button id="add-service-btn" class="bg-sky-500 hover:bg-sky-600 text-white font-medium py-2 px-6 rounded-lg transition shadow">
+                    <i class="fas fa-plus mr-2"></i> Aggiungi Nuovo Servizio
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <!-- MODIFICA: Cambia il nome del comune qui -->
+                    <h3 class="text-xl font-bold mb-4 editable" data-edit-type="text" data-edit-id="footer-comune-nome">Comune di Nizza di Sicilia</h3>
+                    <p class="text-gray-300 mb-4 editable" data-edit-type="text" data-edit-id="footer-comune-descrizione">Portale Turistico Ufficiale</p>
+                    <div class="flex space-x-4">
+                        <!-- MODIFICA: Cambia i link ai social media qui -->
+                        <a href="#" class="text-white hover:text-sky-400 transition editable" data-edit-type="link" data-edit-id="social-facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-white hover:text-sky-400 transition editable" data-edit-type="link" data-edit-id="social-instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-white hover:text-sky-400 transition editable" data-edit-type="link" data-edit-id="social-twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Contatti</h3>
+                    <ul class="space-y-2 text-gray-300">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-2 text-sky-400"></i>
+                            <!-- MODIFICA: Cambia l'indirizzo del comune qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="footer-indirizzo">Piazza Municipio, 1 - 98026 Nizza di Sicilia (ME)</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone mr-2 text-sky-400"></i>
+                            <!-- MODIFICA: Cambia il numero di telefono del comune qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="footer-telefono">+39 0123 456789</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope mr-2 text-sky-400"></i>
+                            <!-- MODIFICA: Cambia l'email del comune qui -->
+                            <span class="editable" data-edit-type="text" data-edit-id="footer-email">info@comune.nizzadisicilia.me.it</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Collegamenti Rapidi</h3>
+                    <ul class="space-y-2 text-gray-300">
+                        <li>
+                            <a href="#home" class="hover:text-sky-400 transition">Home</a>
+                        </li>
+                        <li>
+                            <a href="#spiagge" class="hover:text-sky-400 transition">Spiagge</a>
+                        </li>
+                        <li>
+                            <a href="#eventi" class="hover:text-sky-400 transition">Eventi</a>
+                        </li>
+                        <li>
+                            <a href="#attivita" class="hover:text-sky-400 transition">Attività</a>
+                        </li>
+                        <li>
+                            <a href="#servizi" class="hover:text-sky-400 transition">Servizi</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <!-- MODIFICA: Cambia il copyright qui -->
+                <p class="editable" data-edit-type="text" data-edit-id="footer-copyright">&copy; 2023 Comune di Nizza di Sicilia. Tutti i diritti riservati.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Add Lido Modal -->
+    <div id="add-lido-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Aggiungi Nuovo Lido</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="add-lido-form">
+                    <div class="mb-4">
+                        <label for="lido-name" class="block text-sm font-medium text-gray-700 mb-1">Nome del Lido</label>
+                        <input type="text" id="lido-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="lido-description" class="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
+                        <textarea id="lido-description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="lido-address" class="block text-sm font-medium text-gray-700 mb-1">Indirizzo</label>
+                        <input type="text" id="lido-address" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                    </div>
+                    
+                    <div class="flex justify-end mt-6">
+                        <button type="button" class="close-modal bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg mr-2">
+                            Annulla
+                        </button>
+                        <button type="submit" class="bg-sky-500 hover:bg-sky-600 text-white font-medium py-2 px-4 rounded-lg">
+                            Salva
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Event Modal -->
+    <div id="add-event-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Aggiungi Nuovo Evento</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="add-event-form">
+                    <div class="mb-4">
+                        <label for="event-name" class="block text-sm font-medium text-gray-700 mb-1">Nome dell'Evento</label>
+                        <input type="text" id="event-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="event-category" class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                        <select id="event-category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                            <option value="">Seleziona una categoria</option>
+                            <option value="Musica">Musica</option>
+                            <option value="Gastronomia">Gastronomia</option>
+                            <option value="Cultura">Cultura</option>
+                            <option value="Sport">Sport</option>
+                            <option value="Tradizione">Tradizione</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="event-description" class="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
+                        <textarea id="event-description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="event-date" class="block text-sm font-medium text-gray-700 mb-1">Data</label>
+                        <input type="text" id="event-date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="event-location" class="block text-sm font-medium text-gray-700 mb-1">Luogo</label>
+                        <input type="text" id="event-location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                    </div>
+                    
+                    <div class="flex justify-end mt-6">
+                        <button type="button" class="close-modal bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg mr-2">
+                            Annulla
+                        </button>
+                        <button type="submit" class="bg-sky-500 hover:bg-sky-600 text-white font-medium py-2 px-4 rounded-lg">
+                            Salva
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Activity Modal -->
+    <div id="add-activity-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Aggiungi Nuova Attività</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="add-activity-form">
+                    <div class="mb-4">
+                        <label for="activity-name" class="block text-sm font-medium text-gray-700 mb-1">Nome dell'Attività</label>
+                        <input type="text" id="activity-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="activity-category" class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                        <select id="activity-category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                            <option value="">Seleziona una categoria</option>
+                            <option value="Sport">Sport</option>
+                            <option value="Natura">Natura</option>
+                            <option value="Mare">Mare</option>
+                            <option value="Cultura">Cultura</option>
+                            <option value="Relax">Relax</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="activity-description" class="block text-sm font-medium text-gray-700 mb-1">Descrizione</label>
+                        <textarea id="activity-description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="activity-schedule" class="block text-sm font-medium text-gray-700 mb-1">Orari</label>
+                        <input type="text" id="activity-schedule" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="activity-location" class="block text-sm font-medium text-gray-700 mb-1">Luogo</label>
+                        <input type="text" id="activity-location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                    </div>
+                    
+                    <div class="flex justify-end mt-6">
+                        <button type="button" class="close-modal bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg mr-2">
+                            Annulla
+                        </button>
+                        <button type="submit" class="bg-sky-500 hover:bg-sky-600 text-white font-medium py-2 px-4 rounded-lg">
+                            Salva
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Service Modal -->
+    <div id="add-service-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Aggiungi Nuovo Servizio</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form id="add-service-form">
+                    <div class="mb-4">
+                        <label for="service-name" class="block text-sm font-medium text-gray-700 mb-1">Nome del Servizio</label>
+                        <input type="text" id="service-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="service-icon" class="block text-sm font-medium text-gray-700 mb-1">Icona</label>
+                        <select id="service-icon" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500" required>
+                            <option value="">Seleziona un'icona</option>
+                            <option value="info-circle">Info</option>
+                            <option value="first-aid">Primo Soccorso</option>
+                            <option value="bus">Trasporto</option>
+                            <option value="wifi">Wi```
